@@ -31,16 +31,23 @@ jobs:
 
       - name: Deploy and run app
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 "
-          cd /home/ec2-user &&
+             ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 << 'EOF'
 
-          sudo fuser -k 5000/tcp || true &&
+             cd /home/ec2-user
 
-          if [ ! -d \"virtualenv\" ]; then
-          python3 -m venv virtualenv
-          fi &&
+             sudo fuser -k 5000/tcp || true
 
-          source virtualenv/bin/activate &&
+              if [ ! -d "virtualenv" ]; then
+              python3 -m venv virtualenv
+                  fi
 
-          pip install --upgrade pip --quiet &&
-          pip install -r requirements.txt --quiet &&
+                 source virtualenv/bin/activate
+
+              pip install --upgrade pip --quiet
+                   pip install -r requirements.txt --quiet
+
+              nohup python3 app.py > output.log 2>&1 &
+
+               EOF
+               pip install --upgrade pip --quiet &&
+               pip install -r requirements.txt --quiet &&
