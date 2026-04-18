@@ -1,10 +1,10 @@
-name: loadbalancer
+name: EC2 Deployment Pipeline
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-jobs:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,36 +18,30 @@ jobs:
 
       - name: Create PEM file
         run: |
-          printf "%s" "${{ secrets.SUNPO }}" > key.pem
-          chmod 600 key.pem
+          echo "${{ secrets.SUNPO }}" > key.pem
+          chmod 400 key.pem
 
-      - name: Copy app.py
+      - name: Copy files to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i key.pem app.py ec2-user@34.228.165.122:/home/ec2-user/
-
-      - name: Copy requirements.txt
-        run: |
           scp -o StrictHostKeyChecking=no -i key.pem requirements.txt ec2-user@34.228.165.122:/home/ec2-user/
 
       - name: Deploy and run app
         run: |
-             ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 << 'EOF'
+          cd /home/ec2-user
 
-             cd /home/ec2-user
+          # Stop old app if running
+          pkill -f app.py || true
 
-             sudo fuser -k 5000/tcp || true
+          # Create virtual environment
+          python3 -m venv venv
+          source venv/bin/activate
 
-              if [ ! -d "virtualenv" ]; then
-              python3 -m venv virtualenv
-                  fi
+          # Install dependencies
+          pip install -r requirements.txt
 
-                 source virtualenv/bin/activate
+          # Run app in background
+          nohup python3 app.py > output.log 2>&1 &
 
-              pip install --upgrade pip --quiet
-                   pip install -r requirements.txt --quiet
-
-              nohup python3 app.py > output.log 2>&1 &
-
-               EOF
-               pip install --upgrade pip --quiet &&
-               pip install -r requirements.txt --quiet &&
+          EOF
