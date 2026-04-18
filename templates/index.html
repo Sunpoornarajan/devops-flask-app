@@ -2,32 +2,129 @@
 <html>
 <head>
     <title>Banking Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: auto;
+            margin-top: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .balance {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2e7d32;
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 30%;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .deposit-btn {
+            background: #4caf50;
+            color: white;
+        }
+
+        .transfer-btn {
+            background: #1976d2;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .transactions {
+            list-style: none;
+            padding: 0;
+        }
+
+        .transactions li {
+            background: #fafafa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 5px solid #1976d2;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+    </style>
 </head>
+
 <body>
 
 <div class="container">
+
     <h1>🏦 Banking Dashboard</h1>
 
-    <h2>Balance: ₹ {{ balance }}</h2>
+    <div class="card">
+        <div class="balance">Balance: ₹ {{ balance }}</div>
+    </div>
 
-    <form method="POST" action="/deposit">
-        <input type="number" name="amount" placeholder="Deposit amount" required>
-        <button>Deposit</button>
-    </form>
+    <div class="card">
+        <h3>Deposit</h3>
+        <form method="POST" action="/deposit">
+            <input type="number" name="amount" placeholder="Enter amount" required>
+            <button class="deposit-btn">Deposit</button>
+        </form>
+    </div>
 
-    <form method="POST" action="/transfer">
-        <input type="text" name="receiver" placeholder="Receiver" required>
-        <input type="number" name="amount" placeholder="Amount" required>
-        <button>Transfer</button>
-    </form>
+    <div class="card">
+        <h3>Transfer Money</h3>
+        <form method="POST" action="/transfer">
+            <input type="text" name="receiver" placeholder="Receiver name" required>
+            <input type="number" name="amount" placeholder="Amount" required>
+            <button class="transfer-btn">Transfer</button>
+        </form>
+    </div>
 
-    <h3>Transactions</h3>
-    <ul>
-        {% for t in transactions %}
-            <li>{{ t }}</li>
-        {% endfor %}
-    </ul>
+    <div class="card">
+        <h3>Transactions</h3>
+        <ul class="transactions">
+            {% for t in transactions %}
+                <li>{{ t }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
 </div>
 
 </body>
