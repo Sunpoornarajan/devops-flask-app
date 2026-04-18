@@ -1,37 +1,50 @@
 name: loadbalancer
-on: workflow_dispatch
+
+on:
+  workflow_dispatch:
 
 jobs:
   build-jobs:
     runs-on: ubuntu-latest
+
     steps:
-      - name: checkout code
-        uses: actions/checkout@v6
-        with:
-          ref: main
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: installing python
-        uses: actions/setup-python@v6 
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-version: 'pypy3.10' 
-        
-          
+          python-version: '3.10'
 
-      - name: get pem file
+      - name: Create PEM file
         run: |
-          echo "${{secrets.SUNPO}}" > key.pem
-          chmod 400 key.pem
-          
+          printf "%s" "${{ secrets.SUNPO }}" > key.pem
+          chmod 600 key.pem
 
-
-      - name: cp python
-        run:
+      - name: Copy app.py
+        run: |
           scp -o StrictHostKeyChecking=no -i key.pem app.py ec2-user@34.228.165.122:/home/ec2-user/
 
-      - name: cp requirements
-        run:
+      - name: Copy requirements.txt
+        run: |
           scp -o StrictHostKeyChecking=no -i key.pem requirements.txt ec2-user@34.228.165.122:/home/ec2-user/
 
-      - name: run application
-        run:
-          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 "cd /home/ec2-user && python3 -m venv virtualenv && source virtualenv/bin/activate && pip3 install -r requirements.txt && python3 app.py"
+      - name: Deploy and run app
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 "
+          cd /home/ec2-user &&
+
+          # FIX: stop old app
+          sudo fuser -k 5000/tcp || true &&
+
+          # recreate env (safe)
+          rm -rf virtualenv &&
+          python3 -m venv virtualenv &&
+          source virtualenv/bin/activate &&
+
+          # install deps
+          pip install -r requirements.txt &&
+
+          # run in background
+          nohup python3 app.py > output.log 2>&1 &
+          "
