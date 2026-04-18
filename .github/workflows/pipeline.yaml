@@ -42,10 +42,5 @@ jobs:
 
           source virtualenv/bin/activate &&
 
+          pip install --upgrade pip --quiet &&
           pip install -r requirements.txt --quiet &&
-
-          nohup python3 app.py > output.log 2>&1 &
-          "
-          # run in background
-          nohup python3 app.py > output.log 2>&1 &
-          "
