@@ -1,0 +1,47 @@
+name: EC2 Deployment Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Create PEM file
+        run: |
+          echo "${{ secrets.SAV }}" > key.pem
+          chmod 400 key.pem
+
+      - name: Copy files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i key.pem app.py ec2-user@52.66.53.243:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i key.pem requirements.txt ec2-user@52.66.53.243:/home/ec2-user/
+
+      - name: Deploy and run app
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@52.66.53.243 << 'EOF'
+          cd /home/ec2-user
+
+          # Stop old app if running
+          pkill -f app.py || true
+
+          # Create virtual environment
+          python3 -m venv venv
+          source venv/bin/activate
+
+          # Install dependencies
+          pip install -r requirements.txt
+
+          # Run app in background
+          nohup python3 app.py > output.log 2>&1 &
+
+          EOF
