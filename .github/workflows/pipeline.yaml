@@ -34,17 +34,18 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 "
           cd /home/ec2-user &&
 
-          # FIX: stop old app
           sudo fuser -k 5000/tcp || true &&
 
-          # recreate env (safe)
-          rm -rf virtualenv &&
-          python3 -m venv virtualenv &&
+          if [ ! -d \"virtualenv\" ]; then
+          python3 -m venv virtualenv
+          fi &&
+
           source virtualenv/bin/activate &&
 
-          # install deps
-          pip install -r requirements.txt &&
+          pip install -r requirements.txt --quiet &&
 
+          nohup python3 app.py > output.log 2>&1 &
+          "
           # run in background
           nohup python3 app.py > output.log 2>&1 &
           "
