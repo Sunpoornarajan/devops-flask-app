@@ -23,12 +23,12 @@ jobs:
 
       - name: Copy files to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i key.pem app.py ec2-user@34.228.165.122:/home/ec2-user/
-          scp -o StrictHostKeyChecking=no -i key.pem requirements.txt ec2-user@34.228.165.122:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i key.pem app.py ec2-user@50.19.51.227:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i key.pem requirements.txt ec2-user@50.19.51.227:/home/ec2-user/
 
       - name: Deploy and run app
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@34.228.165.122 << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@50.19.51.227 << 'EOF'
           cd /home/ec2-user
 
           # Stop old app if running
