@@ -1,23 +1,25 @@
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
+import os
 
 app = Flask(__name__)
 
-# MySQL Database Configuration
+# SQLite Database
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///bank.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Initialize Database
 db = SQLAlchemy(app)
 
 
-# Account Table
+# -------------------------
+# Database Models
+# -------------------------
+
 class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     balance = db.Column(db.Integer, nullable=False)
 
 
-# Transaction Table
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     action = db.Column(db.String(50), nullable=False)
@@ -25,22 +27,27 @@ class Transaction(db.Model):
     receiver = db.Column(db.String(100), nullable=True)
 
 
-# Create Database Tables
+# -------------------------
+# Create Database
+# -------------------------
+
 with app.app_context():
     db.create_all()
 
-    # Insert Initial Account Balance
     if Account.query.first() is None:
         account = Account(balance=10000)
         db.session.add(account)
         db.session.commit()
 
 
-# Home Page
+# -------------------------
+# Routes
+# -------------------------
+
 @app.route("/")
 def home():
     account = Account.query.first()
-    transactions = Transaction.query.all()
+    transactions = Transaction.query.order_by(Transaction.id.desc()).all()
 
     return render_template(
         "index.html",
@@ -49,7 +56,6 @@ def home():
     )
 
 
-# Deposit Route
 @app.route("/deposit", methods=["POST"])
 def deposit():
     amount = int(request.form["amount"])
@@ -59,7 +65,8 @@ def deposit():
 
     transaction = Transaction(
         action="Deposit",
-        amount=amount
+        amount=amount,
+        receiver=""
     )
 
     db.session.add(transaction)
@@ -68,7 +75,6 @@ def deposit():
     return redirect("/")
 
 
-# Transfer Route
 @app.route("/transfer", methods=["POST"])
 def transfer():
     amount = int(request.form["amount"])
@@ -85,9 +91,6 @@ def transfer():
             receiver=receiver
         )
 
-        db.session.add(transaction)
-        db.session.commit()
-
     else:
         transaction = Transaction(
             action="Failed Transfer",
@@ -95,11 +98,18 @@ def transfer():
             receiver=receiver
         )
 
-        db.session.add(transaction)
-        db.session.commit()
+    db.session.add(transaction)
+    db.session.commit()
 
     return redirect("/")
 
 
+# -------------------------
+# Run App
+# -------------------------
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000))
+    )
