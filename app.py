@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 # MySQL Database Configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Rajan@06@localhost/banking_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///bank.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize Database
